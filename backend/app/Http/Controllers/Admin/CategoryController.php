@@ -41,8 +41,8 @@ class CategoryController extends Controller
         $validated['slug'] = Str::slug($request->name);
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('public/categories');
-            $validated['image'] = str_replace('public/', '', $imagePath);
+            $path = $request->file('image')->store('categories', 'uploads');
+            $validated['image'] = $path;
         }
 
         Category::create($validated);

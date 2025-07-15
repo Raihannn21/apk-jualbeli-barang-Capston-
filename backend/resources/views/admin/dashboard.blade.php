@@ -121,39 +121,43 @@
                         </button>
                     </form>
                 </div>
-                <canvas id="revenueChart" class="w-full h-64"></canvas>
+                <div class="relative h-80">
+                    <canvas id="revenueChart" class="w-full h-full"></canvas>
+                </div>
             </div>
 
             <!-- Recent Activities -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex flex-col">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Pesanan Terbaru</h3>
-                <div class="space-y-3">
-                    @forelse ($latestOrders as $order)
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-900">#{{ $order->id }}</p>
-                                <p class="text-xs text-gray-600">{{ $order->user->name }}</p>
+                <div class="flex-1 overflow-y-auto max-h-80">
+                    <div class="space-y-3">
+                        @forelse ($latestOrders as $order)
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">#{{ $order->id }}</p>
+                                    <p class="text-xs text-gray-600 truncate">{{ $order->user->name }}</p>
+                                </div>
+                                <div class="text-right ml-3">
+                                    <p class="text-sm font-medium text-gray-900">Rp {{ number_format($order->total_amount, 0, ',', '.') }}</p>
+                                    <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full
+                                        @if($order->status == 'completed') bg-green-100 text-green-800 
+                                        @elseif($order->status == 'pending') bg-yellow-100 text-yellow-800 
+                                        @elseif($order->status == 'shipped') bg-blue-100 text-blue-800 
+                                        @elseif($order->status == 'paid') bg-indigo-100 text-indigo-800 
+                                        @else bg-red-100 text-red-800 @endif">
+                                        {{ ucfirst($order->status) }}
+                                    </span>
+                                </div>
                             </div>
-                            <div class="text-right">
-                                <p class="text-sm font-medium text-gray-900">Rp {{ number_format($order->total_amount, 0, ',', '.') }}</p>
-                                <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full
-                                    @if($order->status == 'completed') bg-green-100 text-green-800 
-                                    @elseif($order->status == 'pending') bg-yellow-100 text-yellow-800 
-                                    @elseif($order->status == 'shipped') bg-blue-100 text-blue-800 
-                                    @elseif($order->status == 'paid') bg-indigo-100 text-indigo-800 
-                                    @else bg-red-100 text-red-800 @endif">
-                                    {{ ucfirst($order->status) }}
-                                </span>
+                        @empty
+                            <div class="text-center py-6">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                                <p class="mt-2 text-sm text-gray-600">Belum ada pesanan</p>
                             </div>
-                        </div>
-                    @empty
-                        <div class="text-center py-6">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                            </svg>
-                            <p class="mt-2 text-sm text-gray-600">Belum ada pesanan</p>
-                        </div>
-                    @endforelse
+                        @endforelse
+                    </div>
                 </div>
                 @if(count($latestOrders) > 0)
                     <div class="mt-4 pt-4 border-t border-gray-200">

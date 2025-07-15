@@ -1,11 +1,12 @@
 <x-admin-layout>
-    <div class="p-6">
-        <!-- Header -->
-        <div class="mb-8">
+    <x-slot name="header">
+        <div>
             <h1 class="text-3xl font-bold text-gray-900">Pengaturan Aplikasi</h1>
             <p class="mt-2 text-gray-600">Konfigurasi pengaturan sistem untuk integrasi layanan eksternal</p>
         </div>
+    </x-slot>
 
+    <div>
         <!-- Success Message -->
         @if (session('success'))
             <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">

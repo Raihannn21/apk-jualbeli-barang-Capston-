@@ -1,21 +1,20 @@
 <x-admin-layout>
-    <div class="p-6">
-        <!-- Header -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Tambah Kategori Baru</h1>
-                    <p class="mt-2 text-gray-600">Buat kategori baru untuk mengorganisir produk</p>
-                </div>
-                <a href="{{ route('admin.categories.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                    </svg>
-                    Kembali
-                </a>
+    <x-slot name="header">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Tambah Kategori Baru</h1>
+                <p class="mt-2 text-gray-600">Buat kategori baru untuk mengorganisir produk</p>
             </div>
+            <a href="{{ route('admin.categories.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Kembali
+            </a>
         </div>
+    </x-slot>
 
+    <div>
         <!-- Error Messages -->
         @if ($errors->any())
             <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
@@ -71,11 +70,29 @@
                                     <div class="flex text-sm text-gray-600">
                                         <label for="image" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
                                             <span>Upload ikon</span>
-                                            <input id="image" name="image" type="file" class="sr-only" accept="image/*">
+                                            <input id="image" name="image" type="file" class="sr-only" accept="image/*" onchange="previewCategoryIcon(this)">
                                         </label>
                                         <p class="pl-1">atau drag and drop</p>
                                     </div>
                                     <p class="text-xs text-gray-500">PNG, JPG, JPEG up to 5MB</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Preview Area -->
+                            <div id="icon-preview" class="mt-4 hidden">
+                                <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                    <div class="w-12 h-12 rounded-lg overflow-hidden bg-white border border-gray-200">
+                                        <img id="preview-icon" src="" alt="Preview Icon" class="w-full h-full object-cover">
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">Preview Ikon</p>
+                                        <p class="text-xs text-gray-500">Ikon akan tampil seperti ini</p>
+                                    </div>
+                                    <button type="button" onclick="clearIconPreview()" class="ml-auto text-red-500 hover:text-red-700">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -119,5 +136,36 @@
             const previewName = document.getElementById('preview-name');
             previewName.textContent = e.target.value || 'Nama kategori akan muncul di sini';
         });
+
+        function previewCategoryIcon(input) {
+            const previewContainer = document.getElementById('icon-preview');
+            const previewIcon = document.getElementById('preview-icon');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewIcon.src = e.target.result;
+                        previewContainer.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('Please select a valid image file');
+                    input.value = '';
+                }
+            }
+        }
+
+        function clearIconPreview() {
+            const previewContainer = document.getElementById('icon-preview');
+            const previewIcon = document.getElementById('preview-icon');
+            const fileInput = document.getElementById('image');
+            
+            previewIcon.src = '';
+            previewContainer.classList.add('hidden');
+            fileInput.value = '';
+        }
     </script>
 </x-admin-layout>

@@ -31,15 +31,21 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($category->image)
-                        <img src="{{ asset('uploads/' . $category->image) }}" alt="{{ $category->name }}" class="w-10 h-10 object-cover rounded-lg">
-                    @else
-                        <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                            </svg>
-                        </div>
-                    @endif
-                </td>
+                                        @php
+                                            // Handle different image path formats
+                                            $imagePath = str_contains($category->image, 'categories/') 
+                                                ? 'uploads/' . $category->image 
+                                                : 'uploads/categories/' . $category->image;
+                                        @endphp
+                                        <img src="{{ asset($imagePath) }}" alt="{{ $category->name }}" class="w-10 h-10 object-cover rounded-lg">
+                                    @else
+                                        <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                            </svg>
+                                        </div>
+                                    @endif
+                                </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm font-medium text-gray-900">{{ $category->name }}</div>
                 </td>

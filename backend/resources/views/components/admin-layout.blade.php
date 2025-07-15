@@ -113,15 +113,8 @@
                         </svg>
                     </button>
 
-                    <!-- Page Title -->
-                    @if (isset($header))
-                        <div class="flex-1">
-                            {{ $header }}
-                        </div>
-                    @endif
-
                     <!-- User Dropdown -->
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-4 ml-auto">
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 <div class="flex items-center space-x-2">
@@ -152,6 +145,16 @@
 
             <!-- Main Content Area -->
             <main class="flex-1 relative overflow-y-auto focus:outline-none">
+                <!-- Header Section -->
+                @if(isset($header))
+                <div class="bg-white shadow-sm border-b border-gray-200">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                        {{ $header }}
+                    </div>
+                </div>
+                @endif
+                
+                <!-- Content Section -->
                 <div class="py-6">
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         {{ $slot }}
