@@ -6,6 +6,57 @@ git commit -m "first commit"<x-admin-layout>
             <p class="mt-2 text-gray-600">Kelola dan moderasi ulasan produk dari pelanggan</p>
         </div>
 
+        <!-- Filter Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <form method="GET" action="{{ route('admin.reviews.index') }}" class="flex items-end space-x-4">
+                <div class="flex-1">
+                    <label for="product_filter" class="block text-sm font-medium text-gray-700 mb-2">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        Filter per Produk
+                    </label>
+                    <select name="product_id" id="product_filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Semua Produk</option>
+                        @foreach($products as $product)
+                            <option value="{{ $product->id }}" {{ $selectedProductId == $product->id ? 'selected' : '' }}>
+                                {{ $product->name }} ({{ $product->reviews_count }} ulasan)
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        Filter
+                    </button>
+                </div>
+                @if($selectedProductId)
+                    <div>
+                        <a href="{{ route('admin.reviews.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            Reset
+                        </a>
+                    </div>
+                @endif
+            </form>
+            
+            @if($selectedProductId)
+                <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-sm text-blue-800">
+                        <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        Menampilkan ulasan untuk produk: <strong>{{ $products->firstWhere('id', $selectedProductId)->name ?? 'Produk tidak ditemukan' }}</strong>
+                    </p>
+                </div>
+            @endif
+        </div>
+
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -19,7 +70,7 @@ git commit -m "first commit"<x-admin-layout>
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Total Ulasan</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $reviews->total() }}</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ $totalReviews }}</p>
                     </div>
                 </div>
             </div>
@@ -36,7 +87,7 @@ git commit -m "first commit"<x-admin-layout>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Rating Rata-rata</p>
                         <p class="text-2xl font-bold text-gray-900">
-                            {{ $reviews->avg('rating') ? number_format($reviews->avg('rating'), 1) : '0.0' }}
+                            {{ $averageRating ? number_format($averageRating, 1) : '0.0' }}
                         </p>
                     </div>
                 </div>
@@ -53,7 +104,7 @@ git commit -m "first commit"<x-admin-layout>
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Rating Tinggi (4-5)</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $reviews->where('rating', '>=', 4)->count() }}</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ $highRatings }}</p>
                     </div>
                 </div>
             </div>
@@ -63,13 +114,13 @@ git commit -m "first commit"<x-admin-layout>
                     <div class="flex-shrink-0">
                         <div class="p-3 bg-red-100 rounded-lg">
                             <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 13l3 3 7-7"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                             </svg>
                         </div>
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Rating Rendah (1-2)</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $reviews->where('rating', '<=', 2)->count() }}</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ $lowRatings }}</p>
                     </div>
                 </div>
             </div>
@@ -188,9 +239,16 @@ git commit -m "first commit"<x-admin-layout>
             <!-- Pagination -->
             @if($reviews->hasPages())
                 <div class="px-6 py-4 border-t border-gray-200">
-                    {{ $reviews->links() }}
+                    {{ $reviews->appends(request()->query())->links() }}
                 </div>
             @endif
         </div>
     </div>
+    
+    <script>
+        // Auto-submit form when product filter changes
+        document.getElementById('product_filter').addEventListener('change', function() {
+            this.form.submit();
+        });
+    </script>
 </x-admin-layout>
