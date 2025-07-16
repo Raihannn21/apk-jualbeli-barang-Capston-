@@ -109,7 +109,6 @@ class ProductController extends Controller
             }
         }
 
-        // Tambahkan image_url yang benar jika produk ditemukan
         if ($result) {
             if ($result->image) {
                 $result->image_url = asset('uploads/' . $result->image);
