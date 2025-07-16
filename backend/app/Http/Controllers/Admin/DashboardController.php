@@ -37,7 +37,6 @@ class DashboardController extends Controller
         $chartLabels = $ordersByDay->keys();
         $chartData = $ordersByDay->values();
 
-        // Kirim semua data ke view
         return view('admin.dashboard', compact(
             'userCount', 'productCount', 'orderCount', 'totalRevenue', 'latestOrders',
             'chartLabels', 'chartData', 

@@ -45,48 +45,39 @@ class AuthController extends Controller
 
         $user = User::where('email', $request['email'])->firstOrFail();
 
-        // --- LOGIKA STREAK DIMULAI DI SINI ---
+        //LOGIKA STREAK 
         $today = Carbon::today();
         $lastLogin = $user->last_login_at;
 
         if ($lastLogin) {
-            // Jika login terakhir adalah kemarin, tambahkan streak
             if ($lastLogin->isYesterday()) {
                 $user->increment('login_streak');
-            }
-            // Jika login terakhir bukan hari ini (dan bukan kemarin), reset streak
-            else if (!$lastLogin->isToday()) {
+            } else if (!$lastLogin->isToday()) {
                 $user->login_streak = 1;
             }
         } else {
-            // Jika ini login pertama kali
             $user->login_streak = 1;
         }
 
-        // Perbarui tanggal login terakhir ke hari ini
         $user->last_login_at = Carbon::now();
         $user->save();
-        // --- LOGIKA STREAK SELESAI ---
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user->fresh(), // Kirim data user yang sudah di-update
+            'user' => $user->fresh(),
         ]);
     }
-    // app/Http/Controllers/Api/AuthController.php
+
 
     public function logout(Request $request)
     {
-        // Ambil user yang terotentikasi
         $user = $request->user();
 
-        // Hapus semua token milik user tersebut. Ini lebih aman.
         $user->tokens()->delete();
 
-        // Kembalikan response sukses
         return response()->json([
             'success' => true,
             'message' => 'Successfully logged out'

@@ -34,7 +34,6 @@ class AddressController extends Controller
             'is_primary' => 'nullable|boolean',
         ]);
 
-        // Jika alamat baru ini adalah alamat utama, nonaktifkan yang lain.
         if ($request->is_primary) {
             $request->user()->addresses()->update(['is_primary' => false]);
         }
@@ -52,7 +51,6 @@ class AddressController extends Controller
      */
     public function show(Request $request, UserAddress $address)
     {
-        // Pastikan user hanya bisa melihat alamatnya sendiri
         if ($request->user()->id !== $address->user_id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -64,7 +62,6 @@ class AddressController extends Controller
      */
     public function update(Request $request, UserAddress $address)
     {
-        // Pastikan user hanya bisa mengubah alamatnya sendiri
         if ($request->user()->id !== $address->user_id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -98,7 +95,6 @@ class AddressController extends Controller
      */
     public function destroy(Request $request, UserAddress $address)
     {
-        // Pastikan user hanya bisa menghapus alamatnya sendiri
         if ($request->user()->id !== $address->user_id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }

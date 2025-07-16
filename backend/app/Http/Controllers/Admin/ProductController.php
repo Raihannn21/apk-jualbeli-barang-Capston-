@@ -19,13 +19,10 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        // Ambil kata kunci pencarian dari request
         $search = $request->input('search');
 
-        // Mulai query, lalu tambahkan kondisi 'where' jika ada pencarian
         $products = Product::with('category')
             ->when($search, function ($query, $search) {
-                // Cari produk yang namanya 'mirip' dengan kata kunci
                 return $query->where('name', 'like', '%' . $search . '%');
             })
             ->latest()
@@ -48,7 +45,6 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Validasi, sekarang untuk 'images' (plural)
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
@@ -66,31 +62,23 @@ class ProductController extends Controller
             // Hitung harga setelah diskon
             $validatedData['discount_price'] = $originalPrice - ($originalPrice * $discountPercent / 100);
         } else {
-            // Jika tidak ada persen diskon, pastikan harga diskon null
             $validatedData['discount_price'] = null;
         }
-        // Kita akan gunakan transaksi untuk memastikan semua data konsisten
         DB::transaction(function () use ($request, $validatedData) {
             
-            // Buat produknya dulu TANPA gambar utama
-            // Kita keluarkan 'images' dari data utama
             $productData = collect($validatedData)->except('images')->toArray();
             $product = Product::create($productData);
 
-            // Proses upload gambar
             if ($request->hasFile('images')) {
                 $isFirstImage = true;
                 foreach ($request->file('images') as $imageFile) {
-                    // Simpan setiap gambar ke disk 'uploads'
                     $path = $imageFile->store('products', 'uploads');
 
-                    // Gambar pertama akan menjadi gambar utama (thumbnail) produk
                     if ($isFirstImage) {
                         $product->update(['image' => $path]);
                         $isFirstImage = false;
                     }
 
-                    // Simpan path gambar ke tabel product_images
                     $product->images()->create(['image_path' => $path]);
                 }
             }
@@ -134,10 +122,8 @@ class ProductController extends Controller
             $validatedData['discount_price'] = null;
         }
 
-        // Update data produk (nama, deskripsi, dll)
         $product->update(collect($validatedData)->except('images')->toArray());
 
-        // Proses jika ada gambar baru yang di-upload
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $imageFile) {
                 $path = $imageFile->store('products', 'uploads');

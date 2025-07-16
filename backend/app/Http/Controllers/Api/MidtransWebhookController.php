@@ -25,19 +25,14 @@ class MidtransWebhookController extends Controller
             $orderId = explode('-', $notification->order_id)[0];
             $order = Order::find($orderId);
 
-            // Jika pesanan tidak ditemukan, abaikan
             if (!$order) {
                 return response()->json(['message' => 'Order not found.'], 404);
             }
-
-            // Periksa status transaksi
             if ($notification->transaction_status == 'settlement') {
-                // Jika statusnya 'settlement', artinya pembayaran sukses.
                 if ($order->status == 'pending') {
                     $order->update(['status' => 'paid']);
                 }
             }
-            // Anda bisa tambahkan handling untuk status lain seperti 'expire', 'cancel', 'deny' di sini.
 
             return response()->json(['message' => 'Notification processed.']);
         } catch (\Exception $e) {

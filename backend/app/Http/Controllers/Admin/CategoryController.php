@@ -72,21 +72,16 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $validated = $request->validate([
-            // Pastikan nama unik, tapi abaikan nama dari kategori yang sedang diedit
             'name' => ['required', 'string', 'max:255', Rule::unique('categories')->ignore($category)],
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Buat slug baru jika nama berubah
         $validated['slug'] = Str::slug($request->name);
 
-        // Handle update gambar
         if ($request->hasFile('image')) {
-            // Hapus gambar lama
             if ($category->image) {
                 Storage::disk('uploads')->delete($category->image);
             }
-            // Simpan gambar baru
             $path = $request->file('image')->store('categories', 'uploads');
             $validated['image'] = $path;
         }

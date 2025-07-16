@@ -14,14 +14,13 @@ class ProductController extends Controller
      */
     private function addProductAggregates($query)
     {
-        return $query->withCount('reviews') // Membuat kolom 'reviews_count'
-                     ->withAvg('reviews', 'rating') // Membuat 'reviews_avg_rating'
-                     ->withCount(['orderItems as sold_count' => function ($q) {
-                        // Hanya hitung dari pesanan yang statusnya sudah selesai/terbayar
-                        $q->whereHas('order', function ($subq) {
-                            $subq->whereIn('status', ['completed', 'paid', 'shipped']);
-                        });
-                     }]);
+        return $query->withCount('reviews') // kolom 'reviews_count'
+            ->withAvg('reviews', 'rating') // 'reviews_avg_rating'
+            ->withCount(['orderItems as sold_count' => function ($q) {
+                $q->whereHas('order', function ($subq) {
+                    $subq->whereIn('status', ['completed', 'paid', 'shipped']);
+                });
+            }]);
     }
 
     /**
@@ -39,8 +38,8 @@ class ProductController extends Controller
 
         // Terapkan agregat ke query
         $query = $this->addProductAggregates($query);
-        
-        $products = $query->latest()->get()->map(function($product) {
+
+        $products = $query->latest()->get()->map(function ($product) {
             $product->image_url = $product->image ? asset('uploads/' . $product->image) : null;
             return $product;
         });
@@ -63,13 +62,13 @@ class ProductController extends Controller
         }]);
 
         $product->load('images');
-        
+
         if ($product->image) {
             $product->image_url = asset('uploads/' . $product->image);
         } else {
             $product->image_url = null;
         }
-        
+
         foreach ($product->images as $image) {
             $image->image_url = asset('uploads/' . $image->image_path);
         }
@@ -94,7 +93,7 @@ class ProductController extends Controller
         while ($low <= $high) {
             $mid = (int)floor($low + ($high - $low) / 2);
             $midProduct = $sortedProducts[$mid];
-            
+
             $midProductName = trim($midProduct->name);
             $comparison = strcasecmp($midProductName, $query);
 
@@ -124,7 +123,7 @@ class ProductController extends Controller
     }
     public function latest()
     {
-        $products = Product::latest()->take(8)->get()->map(function($product) {
+        $products = Product::latest()->take(8)->get()->map(function ($product) {
             if ($product->image) {
                 $product->image_url = asset('uploads/' . $product->image);
             } else {
@@ -138,5 +137,4 @@ class ProductController extends Controller
             'data' => $products,
         ]);
     }
-    
 }

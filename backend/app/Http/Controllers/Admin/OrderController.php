@@ -3,17 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Order; // <-- Tambahkan import
+use App\Models\Order; 
 use Illuminate\Http\Request;
-use App\Exports\OrdersExport; // <-- Import
-use Maatwebsite\Excel\Facades\Excel; // <-- Import
+use App\Exports\OrdersExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Carbon;
 
 class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        // Logika untuk filter cepat
         $period = $request->input('period');
         $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date')) : null;
         $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date')) : null;
@@ -43,7 +42,6 @@ class OrderController extends Controller
 
     public function export(Request $request)
     {
-        // Ambil semua filter dari request
         $filters = $request->all();
         return Excel::download(new OrdersExport($filters), 'laporan-pesanan.xlsx');
     }
@@ -51,14 +49,12 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-        // Eager load semua relasi yang kita butuhkan untuk ditampilkan di view
         $order->load(['user', 'address', 'items.product']);
 
         return view('admin.orders.show', compact('order'));
     }
     public function update(Request $request, Order $order)
     {
-        // Validasi input dengan perbaikan
         $validated = $request->validate([
             'status' => 'required|in:pending,paid,shipped,completed,cancelled',
             // 'courier_code' => 'required_if:status,shipped|string|max:50',

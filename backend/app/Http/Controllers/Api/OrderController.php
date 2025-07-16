@@ -71,7 +71,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'Item keranjang yang dipilih tidak ditemukan.'], 400);
         }
 
-        // --- KALKULASI FINAL SEBELUM DISIMPAN ---
+        //  KALKULASI FINAL SEBELUM DISIMPAN
         $originalSubtotal = 0;
         $finalSubtotal = 0;
         foreach ($cartItems as $item) {
@@ -120,22 +120,17 @@ class OrderController extends Controller
     }
     public function confirmDelivery(Request $request, Order $order)
     {
-        // 1. Otorisasi: Pastikan user yang membuat request adalah pemilik pesanan
         if ($request->user()->id !== $order->user_id) {
             return response()->json(['message' => 'Akses ditolak. Anda bukan pemilik pesanan ini.'], 403);
         }
-
-        // 2. Validasi Status: Pastikan pesanan memang sedang dalam status 'shipped'
         if ($order->status !== 'shipped') {
             return response()->json([
                 'message' => 'Pesanan ini tidak bisa dikonfirmasi karena statusnya bukan \'shipped\'.'
-            ], 422); // 422 Unprocessable Entity
+            ], 422);
         }
 
-        // 3. Jika semua aman, update status pesanan
         $order->update(['status' => 'completed']);
 
-        // 4. Kembalikan Response Sukses
         return response()->json([
             'success' => true,
             'message' => 'Konfirmasi pesanan berhasil. Terima kasih telah berbelanja!',
@@ -144,54 +139,44 @@ class OrderController extends Controller
     }
     public function cancel(Request $request, Order $order)
     {
-        // 1. Otorisasi: Pastikan user adalah pemilik pesanan
         if ($request->user()->id !== $order->user_id) {
             return response()->json(['message' => 'Akses ditolak.'], 403);
         }
 
-        // 2. Validasi Status: Hanya boleh batal jika status 'pending'
         if ($order->status !== 'pending') {
             return response()->json(['message' => 'Pesanan ini tidak dapat dibatalkan.'], 422);
         }
 
-        // Gunakan transaksi untuk memastikan semua proses berhasil atau semua gagal
         DB::transaction(function () use ($order) {
-            // Loop setiap item di dalam pesanan untuk mengembalikan stok
             foreach ($order->items as $item) {
                 // Tambahkan kembali stok produk
                 $item->product()->increment('stock', $item->quantity);
             }
 
-            // Update status pesanan menjadi 'cancelled'
             $order->update(['status' => 'cancelled']);
         });
 
         return response()->json([
             'success' => true,
             'message' => 'Pesanan berhasil dibatalkan.',
-            'data' => $order->fresh(), // Ambil data order terbaru
+            'data' => $order->fresh(),
         ]);
     }
     public function uploadPaymentProof(Request $request, Order $order)
     {
-        // 1. Otorisasi: Pastikan user adalah pemilik pesanan
         if ($request->user()->id !== $order->user_id) {
             return response()->json(['message' => 'Akses ditolak.'], 403);
         }
 
-        // 2. Validasi Status: Hanya boleh upload jika status 'pending'
         if ($order->status !== 'pending') {
             return response()->json(['message' => 'Konfirmasi pembayaran untuk pesanan ini sudah tidak bisa dilakukan.'], 422);
         }
 
-        // 3. Validasi File
         $request->validate([
-            'proof' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // File wajib ada, maks 2MB
+            'proof' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // 4. Simpan File Gambar
         if ($request->hasFile('proof')) {
-            // Hapus bukti pembayaran lama jika ada
             if ($order->payment_proof) {
                 Storage::disk('uploads')->delete($order->payment_proof);
             }
@@ -199,40 +184,34 @@ class OrderController extends Controller
             // Simpan file baru ke public/uploads/proofs
             $path = $request->file('proof')->store('proofs', 'uploads');
 
-            // 5. Update Database
             $order->update([
                 'payment_proof' => $path,
                 'payment_method' => 'Manual Bank Transfer',
             ]);
         }
 
-        // 6. Kembalikan Response Sukses
         return response()->json([
             'success' => true,
             'message' => 'Bukti pembayaran berhasil di-upload. Pesanan akan segera kami proses.',
-            'data' => $order->fresh(), // Ambil data order terbaru
+            'data' => $order->fresh(),
         ]);
     }
     // public function track(Request $request, Order $order)
     // {
-    //     // 1. Otorisasi
     //     if ($request->user()->id !== $order->user_id) {
     //         return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
     //     }
 
-    //     // 2. Validasi
     //     if (empty($order->waybill_number) || empty($order->courier_code)) {
     //         return response()->json(['success' => false, 'message' => 'Nomor resi untuk pesanan ini tidak tersedia.'], 404);
     //     }
 
-    //     // 3. Ambil API Key
     //     $apiKeySetting = Setting::where('key', 'rajaongkir_api_key')->first();
     //     if (!$apiKeySetting || !$apiKeySetting->value) {
     //         return response()->json(['success' => false, 'message' => 'API Key RajaOngkir belum diatur.'], 500);
     //     }
     //     $apiKey = $apiKeySetting->value;
 
-    //     // 4. Panggil API RajaOngkir dengan parameter yang benar
     //     try {
     //         $response = Http::asForm()->withHeaders([
     //             'key' => $apiKey
@@ -243,19 +222,16 @@ class OrderController extends Controller
 
     //         $rajaongkirData = $response->json();
 
-    //         // Cek jika RajaOngkir sendiri memberikan error
     //         if ($rajaongkirData['meta']['code'] != 200) {
     //             // Lempar exception dengan pesan error dari RajaOngkir
     //             throw new \Exception($rajaongkirData['meta']['message']);
     //         }
 
-    //         // Bungkus jawaban sukses dalam format standar kita
     //         return response()->json([
     //             'success' => true,
     //             'data'    => $rajaongkirData['data']
     //         ]);
     //     } catch (\Exception $e) {
-    //         // Tangkap semua error dan kembalikan dalam format standar kita
     //         return response()->json([
     //             'success' => false,
     //             'message' => 'Gagal melacak pengiriman: ' . $e->getMessage()
